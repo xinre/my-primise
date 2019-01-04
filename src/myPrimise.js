@@ -115,8 +115,8 @@ class Myprimise{
     }
     finally(fin){
         return this.then(
-        value  => MyPromise.resolve(fin()).then(() => value),
-        reason => MyPromise.resolve(fin()).then(() => { throw reason })
+            value  => MyPromise.resolve(fin()).then(() => value),
+            reason => MyPromise.resolve(fin()).then(() => { throw reason })
         );
     }
     static resolve (value) {
@@ -129,7 +129,32 @@ class Myprimise{
         return new Myprimise((resolve,reject) => reject(value) )
     }
     static race (list){
-        
+        return new Myprimise((resolve,reject) => {
+            for(let p of list){
+                this.resolve(p).then(res => {
+                    resolve(res)
+                },err => {
+                    reject(err)
+                })
+            }
+        })
+    }
+    static all(list){
+        return new Myprimise((resolve,reject) => {
+            let value = [];
+            let count = 0;
+            for(let [i,p] of list.entries()){
+                this.resolve(p).then(res => {
+                    value[i] = res;
+                    count++;
+                    if(count === list.length){
+                        resolve(value);
+                    }
+                },err => {
+                    reject(err)
+                })
+            }
+        })
     }
 }
 
